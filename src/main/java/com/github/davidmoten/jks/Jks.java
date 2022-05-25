@@ -54,8 +54,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.EncryptedPrivateKeyInfo;
@@ -285,10 +285,9 @@ public class Jks extends KeyStoreSpi {
     }
 
     public String engineGetCertificateAlias(Certificate cert) {
-        for (Iterator<String> keys = trustedCerts.keySet().iterator(); keys.hasNext();) {
-            String alias = (String) keys.next();
-            if (cert.equals(trustedCerts.get(alias)))
-                return alias;
+        for (Entry<String, Certificate> entry : trustedCerts.entrySet()) {
+            if (cert.equals(entry.getValue()))
+                return entry.getKey();
         }
         return null;
     }
