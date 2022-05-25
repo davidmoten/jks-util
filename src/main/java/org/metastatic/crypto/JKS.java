@@ -27,7 +27,9 @@ package org.metastatic.crypto;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,6 +57,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.EncryptedPrivateKeyInfo;
@@ -457,15 +460,22 @@ public class JKS extends KeyStoreSpi {
         }
     }
 
-    public void removeExpiringCertificates(long within, TimeUnit unit) {
+    public List<String> removeExpiringCertificates(long within, TimeUnit unit) {
         Enumeration<String> e = engineAliases();
+        List<String> removed = new ArrayList<>();
         while (e.hasMoreElements()) {
             String alias = e.nextElement();
             X509Certificate c = (X509Certificate) engineGetCertificate(alias);
             if (c.getNotAfter().before(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(90)))) {
-                System.out.println("should remove " + alias + ", expiry=" + c.getNotAfter());
+                removed.add(alias);
+                try {
+                    engineDeleteEntry(alias);
+                } catch (KeyStoreException e1) {
+                    throw new RuntimeException(e1);
+                }
             }
         }
+        return removed;
     }
 
     private static byte[] charsToBytes(char[] passwd) {
@@ -475,6 +485,22 @@ public class JKS extends KeyStoreSpi {
             buf[j++] = (byte) passwd[i];
         }
         return buf;
+    }
+
+    public static List<String> removeExpiringCertificates(File file, char[] password, long within, TimeUnit unit) {
+        JKS jks = new JKS();
+        try {
+            try (FileInputStream in = new FileInputStream(file)) {
+                jks.engineLoad(in, password);
+            }
+            List<String> removedAliases = jks.removeExpiringCertificates(90, TimeUnit.DAYS);
+            try (FileOutputStream out = new FileOutputStream(file)) {
+                jks.engineStore(out, password);
+            }
+            return removedAliases;
+        } catch (NoSuchAlgorithmException | IOException | CertificateException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void main(String[] args) throws NoSuchAlgorithmException, CertificateException, IOException {
