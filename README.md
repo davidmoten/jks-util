@@ -25,27 +25,27 @@ Add this to your pom.xml in the build/plugins section:
 
 <build>
   <plugins>
-<plugin>
-  <groupId>org.codehaus.mojo</groupId>
-  <artifactId>exec-maven-plugin</artifactId>
-  <version>3.0.0</version>
-  <executions>
-    <execution>
-      <goals>
-        <goal>java</goal>
-      </goals>
-      <configuration>
-        <mainClass>com.github.davidmoten.jks.Jks</mainClass>
-        <arguments>
-          <argument>removeExpiring</argument>
-          <argument>src/main/jks/cacerts.jks</argument>
-          <argument>changeit</argument>
-          <argument>90</argument>
-        </arguments>
-      </configuration>
-    </execution>
-  </executions>
-</plugin>
+    <plugin>
+     <groupId>org.codehaus.mojo</groupId>
+     <artifactId>exec-maven-plugin</artifactId>
+     <version>3.0.0</version>
+       <executions>
+         <execution>
+           <goals>
+             <goal>java</goal>
+           </goals>
+           <configuration>
+             <mainClass>com.github.davidmoten.jks.Jks</mainClass>
+             <arguments>
+               <argument>removeExpiring</argument>
+               <argument>src/main/jks/cacerts.jks</argument>
+               <argument>changeit</argument>
+               <argument>90</argument>
+             </arguments>
+           </configuration>
+         </execution>
+       </executions>
+     </plugin>
   </plugins>
 </build>
 ```
