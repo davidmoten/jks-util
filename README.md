@@ -10,3 +10,32 @@ Utilities for manipulating JKS files.
 ## Remove expiring entries from a JKS file
 * `Jks.removeExpiringCertificates(file, password, expiryTime)`
 * `Jdk.main` with arguments `"removeExpiring", "<filename>", "<password>", "<days-to-expire-from-now>"`
+
+### Example using exec-maven-plugin
+Add this to your pom.xml in the build/plugins section:
+
+```xml
+<plugin>
+  <groupId>org.codehaus.mojo</groupId>
+  <artifactId>exec-maven-plugin</artifactId>
+  <version>3.0.0</version>
+  <executions>
+    <execution>
+      <goals>
+        <goal>java</goal>
+      </goals>
+      <configuration>
+        <mainClass>com.github.davidmoten.jks.Jks</mainClass>
+        <arguments>
+          <argument>removeExpiring</argument>
+          <argument>src/main/jks/cacerts.jks</argument>
+          <argument>changeit</argument>
+          <argument>90</argument>
+        </arguments>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+```
+
+Then call `mvn exec:java`
