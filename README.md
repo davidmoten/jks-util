@@ -15,6 +15,16 @@ Utilities for manipulating JKS files.
 Add this to your pom.xml in the build/plugins section:
 
 ```xml
+<dependencies>
+  <dependency>
+    <groupId>com.github.davidmoten</groupId>
+    <artifactId>jks-util</artifactId>
+    <version>VERSION_HERE</version>
+  </dependency>
+</dependencies>
+
+<build>
+  <plugins>
 <plugin>
   <groupId>org.codehaus.mojo</groupId>
   <artifactId>exec-maven-plugin</artifactId>
@@ -36,6 +46,8 @@ Add this to your pom.xml in the build/plugins section:
     </execution>
   </executions>
 </plugin>
+  </plugins>
+</build>
 ```
 
 Then call `mvn exec:java`
