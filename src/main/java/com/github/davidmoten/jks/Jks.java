@@ -22,14 +22,13 @@ reverse-engineering, and therefore I believe it is outside of Sun's
 power to enforce restrictions on reverse-engineering of their software,
 and it is irresponsible for them to claim they can.  */
 
-package org.metastatic.crypto;
+package com.github.davidmoten.jks;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,8 +56,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.concurrent.TimeUnit;
 
 import javax.crypto.EncryptedPrivateKeyInfo;
 import javax.crypto.spec.SecretKeySpec;
@@ -151,8 +148,9 @@ import javax.crypto.spec.SecretKeySpec;
  * <a href="http://metastatic.org/source/JKS.java">JKS.java</a>.
  *
  * @author Casey Marshall (rsdio@metastatic.org)
+ * @author Dave Moten (davidmoten on github), enhancements and refactorings
  */
-public class JKS extends KeyStoreSpi {
+public class Jks extends KeyStoreSpi {
 
     // Constants and fields.
     // ------------------------------------------------------------------------
@@ -172,7 +170,7 @@ public class JKS extends KeyStoreSpi {
     // Constructor.
     // ------------------------------------------------------------------------
 
-    public JKS() {
+    public Jks() {
         super();
         aliases = new ArrayList<>();
         trustedCerts = new HashMap<>();
@@ -303,7 +301,7 @@ public class JKS extends KeyStoreSpi {
         dout.writeInt(MAGIC);
         dout.writeInt(2);
         dout.writeInt(aliases.size());
-        for (Enumeration e = Collections.enumeration(aliases); e.hasMoreElements();) {
+        for (Enumeration<String> e = Collections.enumeration(aliases); e.hasMoreElements();) {
             String alias = (String) e.nextElement();
             if (trustedCerts.containsKey(alias)) {
                 dout.writeInt(TRUSTED_CERT);
@@ -432,10 +430,9 @@ public class JKS extends KeyStoreSpi {
     private static byte[] encryptKey(Key key, byte[] passwd) throws KeyStoreException {
         try {
             MessageDigest sha = MessageDigest.getInstance("SHA1");
-            SecureRandom rand = SecureRandom.getInstance("SHA1PRNG");
             byte[] k = key.getEncoded();
             byte[] encrypted = new byte[k.length + 40];
-            byte[] keystream = rand.getSeed(20);
+            byte[] keystream = SecureRandom.getSeed(20);
             System.arraycopy(keystream, 0, encrypted, 0, 20);
             int count = 0;
             while (count < k.length) {
@@ -460,15 +457,15 @@ public class JKS extends KeyStoreSpi {
         }
     }
 
-    public List<String> removeExpiringCertificates(long within, TimeUnit unit) {
-        Enumeration<String> e = engineAliases();
+    public List<String> removeExpiringCertificates(long expiryTime) {
         List<String> removed = new ArrayList<>();
-        while (e.hasMoreElements()) {
-            String alias = e.nextElement();
+        List<String> currentAliases = new ArrayList<>(aliases);
+        for (String alias : currentAliases) {
             X509Certificate c = (X509Certificate) engineGetCertificate(alias);
-            if (c.getNotAfter().before(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(90)))) {
+            if (c.getNotAfter().getTime() <= expiryTime) {
                 removed.add(alias);
                 try {
+                    System.out.println("removing " + alias + " which expires " + c.getNotAfter());
                     engineDeleteEntry(alias);
                 } catch (KeyStoreException e1) {
                     throw new RuntimeException(e1);
@@ -487,13 +484,13 @@ public class JKS extends KeyStoreSpi {
         return buf;
     }
 
-    public static List<String> removeExpiringCertificates(File file, char[] password, long within, TimeUnit unit) {
-        JKS jks = new JKS();
+    public static List<String> removeExpiringCertificates(File file, char[] password, long expiryTime) {
+        Jks jks = new Jks();
         try {
             try (FileInputStream in = new FileInputStream(file)) {
                 jks.engineLoad(in, password);
             }
-            List<String> removedAliases = jks.removeExpiringCertificates(90, TimeUnit.DAYS);
+            List<String> removedAliases = jks.removeExpiringCertificates(expiryTime);
             try (FileOutputStream out = new FileOutputStream(file)) {
                 jks.engineStore(out, password);
             }
@@ -503,13 +500,4 @@ public class JKS extends KeyStoreSpi {
         }
     }
 
-    public static void main(String[] args) throws NoSuchAlgorithmException, CertificateException, IOException {
-        JKS s = new JKS();
-        try (FileInputStream in = new FileInputStream("/home/dxm/cacerts.jks");
-                FileOutputStream out = new FileOutputStream("target/output.jks")) {
-            s.engineLoad(in, "changeit".toCharArray());
-            s.removeExpiringCertificates(90, TimeUnit.DAYS);
-            s.engineStore(out, "changeit".toCharArray());
-        }
-    }
 }
