@@ -352,7 +352,7 @@ public class Jks extends KeyStoreSpi {
             case PRIVATE_KEY:
                 int len = din.readInt();
                 byte[] encoded = new byte[len];
-                din.read(encoded);
+                din.readFully(encoded);
                 privateKeys.put(alias, encoded);
                 int count = din.readInt();
                 Certificate[] chain = new Certificate[count];
@@ -384,7 +384,7 @@ public class Jks extends KeyStoreSpi {
         String type = in.readUTF();
         int len = in.readInt();
         byte[] encoded = new byte[len];
-        in.read(encoded);
+        in.readFully(encoded);
         CertificateFactory factory = CertificateFactory.getInstance(type);
         return factory.generateCertificate(new ByteArrayInputStream(encoded));
     }
