@@ -462,14 +462,17 @@ public class Jks extends KeyStoreSpi {
         List<String> removed = new ArrayList<>();
         List<String> currentAliases = new ArrayList<>(aliases);
         for (String alias : currentAliases) {
-            X509Certificate c = (X509Certificate) engineGetCertificate(alias);
-            if (c.getNotAfter().getTime() <= expiryTime) {
-                removed.add(alias);
-                try {
-                    System.out.println("removing " + alias + " which expires " + c.getNotAfter());
-                    engineDeleteEntry(alias);
-                } catch (KeyStoreException e1) {
-                    throw new RuntimeException(e1);
+            Certificate cert = engineGetCertificate(alias);
+            if (cert instanceof X509Certificate) {
+                X509Certificate c = (X509Certificate) cert;
+                if (c.getNotAfter().getTime() <= expiryTime) {
+                    removed.add(alias);
+                    try {
+                        System.out.println("removing " + alias + " which expires " + c.getNotAfter());
+                        engineDeleteEntry(alias);
+                    } catch (KeyStoreException e1) {
+                        throw new RuntimeException(e1);
+                    }
                 }
             }
         }
