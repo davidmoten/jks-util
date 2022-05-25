@@ -5,7 +5,7 @@
 
 Utilities for manipulating JKS files.
 
-**Status**: released to Maven Central
+**Status**: *released to Maven Central*
 
 ## Remove expiring entries from a JKS file
 * `Jks.removeExpiringCertificates(file, password, expiryTime)`
