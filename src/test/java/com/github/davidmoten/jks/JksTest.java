@@ -21,6 +21,15 @@ public class JksTest {
         long now = 1653446875550L;
         List<String> list = Jks.removeExpiringCertificates(output, "changeit".toCharArray(), now);
         assertEquals(28, list.size());
-        
+    }
+
+    @Test
+    public void testCommandLine() throws IOException {
+        File input = new File("src/test/resources/cacerts.jks");
+        File output = new File("target/cacerts.jks");
+        output.getParentFile().mkdirs();
+        output.delete();
+        Files.copy(input.toPath(), output.toPath());
+        Jks.main(new String[] { "removeExpiring", output.getPath(), "changeit", "90"});
     }
 }

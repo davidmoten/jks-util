@@ -56,6 +56,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.EncryptedPrivateKeyInfo;
 import javax.crypto.spec.SecretKeySpec;
@@ -497,6 +498,22 @@ public class Jks extends KeyStoreSpi {
             return removedAliases;
         } catch (NoSuchAlgorithmException | IOException | CertificateException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static final String USAGE = "Usage:\nJks removeExpired <file> <password> <days-from-now>";
+
+    public static void main(String[] args) {
+        if (args == null || args.length == 0) {
+            throw new RuntimeException(USAGE);
+        } else if (args[0].equalsIgnoreCase("removeExpiring") && args.length == 4) {
+            String filename = args[1];
+            char[] password = args[2].toCharArray();
+            int days = Integer.parseInt(args[3]);
+            long expiryTime = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(days);
+            Jks.removeExpiringCertificates(new File(filename), password, expiryTime);
+        } else {
+            throw new RuntimeException(USAGE);
         }
     }
 
