@@ -12,7 +12,7 @@ Utilities for manipulating JKS files.
 * `Jdk.main` with arguments `"removeExpiring", "<filename>", "<password>", "<days-to-expire-from-now>"`
 
 ### Example using exec-maven-plugin
-Add this to your pom.xml in the build/plugins section:
+Add this to your pom.xml:
 
 ```xml
 <dependencies>
