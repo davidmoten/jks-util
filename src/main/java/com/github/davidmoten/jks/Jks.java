@@ -503,7 +503,7 @@ public class Jks extends KeyStoreSpi {
         }
     }
 
-    private static final String USAGE = "Usage:\nJks removeExpired <file> <password> <days-from-now>";
+    private static final String USAGE = "Usage:\nJks removeExpiring <file> <password> <days-from-now>";
 
     public static void main(String[] args) {
         if (args == null || args.length == 0) {
